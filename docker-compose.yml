@@ -2,21 +2,32 @@ version: '3.8'
 
 services:
   mysql_container:
-    build: ./MySQL
+    image: mysql:8.0
     container_name: mysql_container
-    ports:
-      - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: etl_db
+      MYSQL_DATABASE: test_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    volumes:
+      - ./MySQL/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3306:3306"
+    networks:
+      - etl_network
 
   etl_script:
-    image: python:3.9
-    container_name: etl_script
-    working_dir: /app
+    build:
+      context: ./ETL
+    container_name: etl_script_container
     volumes:
-      - ./ETL:/app
-      - ./data:/data
-    command: ["python", "etl_script.py"]
+      - ./data:/data               # Mount data directory
+      - ./ETL:/app                 # Mount ETL directory
     depends_on:
       - mysql_container
+    networks:
+      - etl_network
+
+networks:
+  etl_network:
+    driver: bridge
