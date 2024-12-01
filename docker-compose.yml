@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  mysql_container:
+    build: ./MySQL
+    container_name: mysql_container
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: etl_db
+
+  etl_script:
+    image: python:3.9
+    container_name: etl_script
+    working_dir: /app
+    volumes:
+      - ./ETL:/app
+      - ./data:/data
+    command: ["python", "etl_script.py"]
+    depends_on:
+      - mysql_container
